@@ -6,10 +6,50 @@ const {shuffleArray} = require('./utils')
 
 app.use(express.json())
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'))
+})
+
+app.get('/styles', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.css'))
+})
+
+app.get('/js', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.js'))
+})
+
+
+const Rollbar = require('rollbar')
+const rollbar = new Rollbar({
+  accessToken: 'cbad10961d4e4e52bad2245d722d7950',
+  captureUncaught: true,
+  captureUnhandledRejections: true,
+})
+
+// record a generic message and send it to Rollbar
+rollbar.log('Hello world!')
+
+app.get('/', (req, res) => {
+    rollbar.info('site accessed')
+    res.sendFile(path.join(__dirname, "../index.html"))
+})
+
+app.get('/css', (req, res) => {
+    rollbar.info('Styling properly added')
+    res.sendFile(path.join(__dirname, "../index.css"))
+})
+
+app.get('/js', (req, res) => {
+    rollbar.info('JS properly added')
+    res.sendFile(path.join(__dirname, "../public/index.js"))
+})
+
 app.get('/api/robots', (req, res) => {
     try {
+        rollbar.info('Showing all robots')
         res.status(200).send(botsArr)
     } catch (error) {
+        rollbar.error('unable to load robots')
         console.log('ERROR GETTING BOTS', error)
         res.sendStatus(400)
     }
@@ -17,6 +57,7 @@ app.get('/api/robots', (req, res) => {
 
 app.get('/api/robots/five', (req, res) => {
     try {
+        rollbar.info('Five Robots Added')
         let shuffled = shuffleArray(bots)
         let choices = shuffled.slice(0, 5)
         let compDuo = shuffled.slice(6, 8)
@@ -53,6 +94,7 @@ app.post('/api/duel', (req, res) => {
             res.status(200).send('You won!')
         }
     } catch (error) {
+        rollbar.error('Error Dueling')
         console.log('ERROR DUELING', error)
         res.sendStatus(400)
     }
